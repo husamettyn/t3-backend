@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block title %}Kanban Board{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-3xl font-bold">Kanban Board</h1>
+        {% if user.is_authenticated %} {# Maybe restrict to admins later? #}
+            <a href="{% url 'task_new' %}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                + New Task
+            </a>
+        {% endif %}
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+        <!-- To Do Column -->
+        <div class="bg-gray-200 rounded-lg p-4 shadow">
+            <h2 class="text-xl font-semibold mb-4 text-gray-700 border-b pb-2">To Do</h2>
+            <div class="space-y-4 min-h-[200px]" id="todo-column" data-status="TODO">
+                {% for task in todo_tasks %}
+                    {% include 'tasks/partials/task_card.html' with task=task %}
+                {% empty %}
+                    <p class="text-gray-500 text-sm text-center mt-4">No tasks here yet.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- In Progress Column -->
+        <div class="bg-gray-200 rounded-lg p-4 shadow">
+            <h2 class="text-xl font-semibold mb-4 text-gray-700 border-b pb-2">In Progress</h2>
+            <div class="space-y-4 min-h-[200px]" id="inprogress-column" data-status="INPROGRESS">
+                {% for task in inprogress_tasks %}
+                     {% include 'tasks/partials/task_card.html' with task=task %}
+                {% empty %}
+                    <p class="text-gray-500 text-sm text-center mt-4">No tasks here yet.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Done Column -->
+        <div class="bg-gray-200 rounded-lg p-4 shadow">
+            <h2 class="text-xl font-semibold mb-4 text-gray-700 border-b pb-2">Done</h2>
+            <div class="space-y-4 min-h-[200px]" id="done-column" data-status="DONE">
+                {% for task in done_tasks %}
+                     {% include 'tasks/partials/task_card.html' with task=task %}
+                {% empty %}
+                    <p class="text-gray-500 text-sm text-center mt-4">No tasks here yet.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+    </div>
+</div>
+
+{# Add JavaScript for drag-and-drop later if implementing Task 4.6 #}
+{% block extra_js %}
+{# <script src="path/to/drag_drop_script.js"></script> #}
+{% endblock %}
+
+{% endblock %}

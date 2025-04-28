@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+
+{% block title %}Task: {{ task.title }}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4">
+    <div class="bg-white p-8 rounded-lg shadow-md max-w-4xl mx-auto">
+
+        <!-- Task Header -->
+        <div class="flex justify-between items-start mb-6 pb-4 border-b">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900">{{ task.title }}</h1>
+                <div class="text-sm text-gray-600 mt-2">
+                    <span>Status: <strong class="font-semibold">{{ task.get_status_display }}</strong></span>
+                    <span class="mx-2">&bull;</span>
+                    <span>Created by: {{ task.created_by.username }} on {{ task.created_at|date:"M d, Y" }}</span>
+                    {% if task.assigned_to %}
+                        <span class="mx-2">&bull;</span>
+                        <span>Assigned to: {{ task.assigned_to.username }}</span>
+                    {% else %}
+                        <span class="mx-2">&bull;</span>
+                        <span>Unassigned</span>
+                    {% endif %}
+                </div>
+            </div>
+            {# Edit button - visible only to creator or admin #}
+            {% if user == task.created_by or user.is_admin %}
+                <a href="{% url 'task_edit' task.pk %}" class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded text-sm">Edit Task</a>
+            {% endif %}
+        </div>
+
+        <!-- Task Description -->
+        {% if task.description %}
+            <div class="mb-8">
+                <h2 class="text-xl font-semibold mb-2 text-gray-800">Description</h2>
+                <div class="prose max-w-none text-gray-700">
+                    {{ task.description|linebreaks }}
+                </div>
+            </div>
+        {% endif %}
+
+        <!-- Attachments Section -->
+        <div class="mb-8">
+            <h2 class="text-xl font-semibold mb-4 text-gray-800">Attachments</h2>
+            <div class="space-y-3 mb-4">
+                {% for attachment in attachments %}
+                    <div class="bg-gray-100 p-3 rounded-md flex justify-between items-center text-sm">
+                        <a href="{{ attachment.file.url }}" target="_blank" class="text-blue-600 hover:underline font-medium">
+                            {{ attachment.file.name|cut:"task_attachments/" }} {# Display cleaner filename #}
+                        </a>
+                        <span class="text-gray-500">Uploaded by {{ attachment.uploaded_by.username }} on {{ attachment.uploaded_at|date:"M d, Y" }}</span>
+                        {# Add delete button if needed, respecting permissions #}
+                    </div>
+                {% empty %}
+                    <p class="text-gray-500 text-sm">No attachments yet.</p>
+                {% endfor %}
+            </div>
+            {% if user.is_authenticated %} {# Allow logged-in users to attach files #}
+            <form action="{% url 'task_add_attachment' task.pk %}" method="post" enctype="multipart/form-data" class="bg-gray-50 p-4 rounded-md border">
+                 <h3 class="text-md font-semibold mb-2 text-gray-700">Add Attachment</h3>
+                {% csrf_token %}
+                 <div class="mb-2">
+                     <label for="{{ attachment_form.file.id_for_label }}" class="sr-only">{{ attachment_form.file.label }}</label>
+                     <input type="file" name="{{ attachment_form.file.name }}" id="{{ attachment_form.file.id_for_label }}" required {# Removed multiple attribute #}
+                            class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 {% if attachment_form.file.errors %}border border-red-500 rounded-lg{% endif %}">
+                     {% if attachment_form.file.errors %}
+                         <p class="text-red-500 text-xs italic mt-1">{{ attachment_form.file.errors|striptags }}</p>
+                     {% endif %}
+                 </div>
+                <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-3 rounded text-sm">Upload</button>
+            </form>
+            {% endif %}
+        </div>
+
+        <!-- Comments Section -->
+        <div>
+            <h2 class="text-xl font-semibold mb-4 text-gray-800">Comments</h2>
+             {% if user.is_authenticated %} {# Allow logged-in users to comment #}
+            <form action="{% url 'task_add_comment' task.pk %}" method="post" class="mb-6 bg-gray-50 p-4 rounded-md border">
+                 <h3 class="text-md font-semibold mb-2 text-gray-700">Add Comment</h3>
+                {% csrf_token %}
+                 <div class="mb-2">
+                     <label for="{{ comment_form.text.id_for_label }}" class="sr-only">{{ comment_form.text.label }}</label>
+                     <textarea name="{{ comment_form.text.name }}" id="{{ comment_form.text.id_for_label }}" required rows="3"
+                               placeholder="Write your comment here..."
+                               class="shadow-sm appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-blue-500 focus:border-blue-500 {% if comment_form.text.errors %}border-red-500{% endif %}"></textarea>
+                     {% if comment_form.text.errors %}
+                         <p class="text-red-500 text-xs italic mt-1">{{ comment_form.text.errors|striptags }}</p>
+                     {% endif %}
+                 </div>
+                 {# Add tagged_users field if needed #}
+                 {# <div class="mb-2"> ... {{ comment_form.tagged_users }} ... </div> #}
+                <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-sm">Post Comment</button>
+            </form>
+             {% else %}
+                 <p class="text-gray-600 mb-4 text-sm"><a href="{% url 'login' %}?next={{ request.path }}" class="text-blue-500 hover:underline">Log in</a> to add comments or attachments.</p>
+             {% endif %}
+
+            <div class="space-y-4">
+                {% for comment in comments %}
+                    <div class="bg-gray-100 p-4 rounded-md">
+                        <p class="text-gray-800 mb-1">{{ comment.text|linebreaksbr }}</p>
+                        <p class="text-xs text-gray-500">
+                            By <strong class="font-medium">{{ comment.user.username }}</strong> on {{ comment.created_at|date:"M d, Y, P" }}
+                            {% if comment.tagged_users.exists %}
+                                <span class="ml-2">| Tagged: {% for tagged_user in comment.tagged_users.all %}{{ tagged_user.username }}{% if not forloop.last %}, {% endif %}{% endfor %}</span>
+                            {% endif %}
+                        </p>
+                         {# Add delete/edit comment links if needed, respecting permissions #}
+                    </div>
+                {% empty %}
+                    <p class="text-gray-500 text-sm">No comments yet.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+         <div class="mt-8 pt-6 border-t border-gray-200">
+             <a href="{% url 'kanban_board' %}" class="text-blue-500 hover:text-blue-700">&larr; Back to Kanban Board</a>
+         </div>
+
+    </div>
+</div>
+{% endblock %}

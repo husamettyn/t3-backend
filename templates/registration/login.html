@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block title %}Login{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto bg-white p-8 rounded-lg shadow-md">
+    <h2 class="text-2xl font-bold mb-6 text-center">Login</h2>
+
+    {% if form.errors %}
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+            <strong class="font-bold">Error!</strong>
+            <span class="block sm:inline"> Please correct the errors below.</span>
+            <ul>
+            {% for field, errors in form.errors.items %}
+                {% for error in errors %}
+                    <li>{{ field|title }}: {{ error }}</li>
+                {% endfor %}
+            {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+
+    <form method="post" action="{% url 'login' %}">
+        {% csrf_token %}
+        <div class="mb-4">
+            <label for="{{ form.username.id_for_label }}" class="block text-gray-700 text-sm font-bold mb-2">Username:</label>
+            <input type="text" name="{{ form.username.name }}" id="{{ form.username.id_for_label }}" required
+                   class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline {% if form.username.errors %}border-red-500{% endif %}">
+            {% if form.username.errors %}
+                <p class="text-red-500 text-xs italic">{{ form.username.errors|striptags }}</p>
+            {% endif %}
+        </div>
+        <div class="mb-6">
+            <label for="{{ form.password.id_for_label }}" class="block text-gray-700 text-sm font-bold mb-2">Password:</label>
+            <input type="password" name="{{ form.password.name }}" id="{{ form.password.id_for_label }}" required
+                   class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline {% if form.password.errors %}border-red-500{% endif %}">
+            {% if form.password.errors %}
+                <p class="text-red-500 text-xs italic">{{ form.password.errors|striptags }}</p>
+            {% endif %}
+            {# Add link to password reset form if needed #}
+            {# <a class="inline-block align-baseline font-bold text-sm text-blue-500 hover:text-blue-800" href="{% url 'password_reset' %}"> #}
+            {#    Forgot Password? #}
+            {# </a> #}
+        </div>
+        <div class="flex items-center justify-between">
+            <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                Sign In
+            </button>
+            <a href="{% url 'signup' %}" class="inline-block align-baseline font-bold text-sm text-blue-500 hover:text-blue-800">
+                Don't have an account? Sign Up
+            </a>
+        </div>
+        <input type="hidden" name="next" value="{{ next }}">
+    </form>
+</div>
+{% endblock %}

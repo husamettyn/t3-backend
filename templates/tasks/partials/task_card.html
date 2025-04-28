@@ -1,0 +1,37 @@
+{# Represents a single task card on the Kanban board #}
+<div class="bg-white rounded-xl shadow-md p-4 cursor-pointer hover:shadow-lg transition-shadow duration-200"
+     id="task-{{ task.pk }}"
+     data-task-id="{{ task.pk }}"> {# Data attribute for potential JS interaction #}
+
+    <h3 class="font-semibold text-lg mb-2">
+        <a href="{% url 'task_detail' task.pk %}" class="text-gray-800 hover:text-blue-600">{{ task.title }}</a>
+    </h3>
+
+    {# Optional: Display description excerpt #}
+    {% if task.description %}
+    <p class="text-sm text-gray-600 mb-3">{{ task.description|truncatewords:15 }}</p>
+    {% endif %}
+
+    <div class="flex justify-between items-center text-xs text-gray-500">
+        <div>
+            {% if task.assigned_to %}
+                <span>Assigned: {{ task.assigned_to.username }}</span>
+            {% else %}
+                <span>Unassigned</span>
+            {% endif %}
+        </div>
+        <div>
+            {# Optional: Display comment/attachment counts #}
+            {# <span title="Comments"><i class="fas fa-comment"></i> {{ task.comments.count }}</span> #}
+            {# <span title="Attachments" class="ml-2"><i class="fas fa-paperclip"></i> {{ task.attachments.count }}</span> #}
+        </div>
+    </div>
+
+     {# Optional: Add edit/delete links if needed directly on card, respecting permissions #}
+     {# {% if user == task.created_by or user.is_admin %}
+     <div class="mt-2 text-right">
+         <a href="#" class="text-xs text-blue-500 hover:underline">Edit</a>
+     </div>
+     {% endif %} #}
+
+</div>

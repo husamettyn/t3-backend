@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if object %}Edit Post{% else %}New Post{% endif %}{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto bg-white p-8 rounded-lg shadow-md">
+    <h2 class="text-2xl font-bold mb-6 text-center">{% if object %}Edit Post{% else %}Create New Post{% endif %}</h2>
+
+    {% if form.errors %}
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+            <strong class="font-bold">Error!</strong>
+            <span class="block sm:inline"> Please correct the errors below.</span>
+             <ul>
+            {% for field, errors in form.errors.items %}
+                 {% for error in errors %}
+                    <li>{{ field|title }}: {{ error }}</li>
+                 {% endfor %}
+            {% endfor %}
+             </ul>
+        </div>
+    {% endif %}
+
+    {# IMPORTANT: enctype is needed for file uploads #}
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <div class="mb-4">
+            <label for="{{ form.title.id_for_label }}" class="block text-gray-700 text-sm font-bold mb-2">{{ form.title.label }}:</label>
+            <input type="text" name="{{ form.title.name }}" id="{{ form.title.id_for_label }}" required maxlength="{{ form.title.field.max_length }}"
+                   class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline {% if form.title.errors %}border-red-500{% endif %}"
+                   value="{{ form.title.value|default:'' }}">
+            {% if form.title.errors %}
+                <p class="text-red-500 text-xs italic">{{ form.title.errors|striptags }}</p>
+            {% endif %}
+        </div>
+
+        <div class="mb-4">
+            <label for="{{ form.content.id_for_label }}" class="block text-gray-700 text-sm font-bold mb-2">{{ form.content.label }}:</label>
+            <textarea name="{{ form.content.name }}" id="{{ form.content.id_for_label }}" required rows="10"
+                      class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline {% if form.content.errors %}border-red-500{% endif %}">{{ form.content.value|default:'' }}</textarea>
+            {% if form.content.errors %}
+                <p class="text-red-500 text-xs italic">{{ form.content.errors|striptags }}</p>
+            {% endif %}
+        </div>
+
+        <div class="mb-6">
+            <label for="{{ form.image.id_for_label }}" class="block text-gray-700 text-sm font-bold mb-2">{{ form.image.label }}:</label>
+            {% if object.image %}
+                <p class="text-sm text-gray-600 mb-2">Current image: <a href="{{ object.image.url }}" target="_blank" class="text-blue-500 hover:underline">{{ object.image.name }}</a></p>
+                {# Django's ClearableFileInput includes a checkbox to clear the image #}
+            {% endif %}
+            <input type="file" name="{{ form.image.name }}" id="{{ form.image.id_for_label }}" accept="image/*"
+                   class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline {% if form.image.errors %}border-red-500{% endif %}">
+             {% if form.image.help_text %}
+                <p class="text-gray-600 text-xs italic mt-1">{{ form.image.help_text }}</p>
+             {% endif %}
+            {% if form.image.errors %}
+                <p class="text-red-500 text-xs italic">{{ form.image.errors|striptags }}</p>
+            {% endif %}
+        </div>
+
+
+        <div class="flex items-center justify-end space-x-4">
+             {% if object %}
+             <a href="{{ object.get_absolute_url }}" class="text-gray-600 hover:text-gray-800">Cancel</a>
+             {% else %}
+             <a href="{% url 'post_list' %}" class="text-gray-600 hover:text-gray-800">Cancel</a>
+             {% endif %}
+            <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                {% if object %}Update Post{% else %}Create Post{% endif %}
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
